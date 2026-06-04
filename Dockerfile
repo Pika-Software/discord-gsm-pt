@@ -6,10 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # Create the non-privileged user early
-RUN adduser -D dgsm
+RUN adduser -D -h /home/container container
 
 # Set work directory
-WORKDIR /usr/src/app
+WORKDIR /home/container
 
 # Update the OS without caching package indexes to save space
 RUN apk upgrade --no-cache
@@ -23,14 +23,15 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 # Copy the app contents and set ownership in one step
 # This prevents Docker from creating duplicate layers and doubling image size
-COPY --chown=dgsm:dgsm . .
+COPY --chown=container:container . .
 
 # Ensure the data directory exists with the correct permissions
-RUN mkdir -p /usr/src/app/data \
-    && chown dgsm:dgsm /usr/src/app/data
+RUN mkdir -p /home/container/data \
+    && chown container:container /home/container/data
 
 # Switch to the non-privileged user
-USER dgsm
+USER container
+ENV USER=container HOME=/home/container
 
 # Set default container start command
 CMD ["python", "main.py"]
