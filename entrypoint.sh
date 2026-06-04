@@ -19,7 +19,11 @@ cd /home/container || exit 1
 # replacing the values.
 PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | eval echo "$(cat -)")
 
-if [ ! -d "/home/container/.git" ]; then
+if [ -d "/home/container/.git" ]; then
+    git reset --hard
+    git clean -fd
+    git pull
+else
     git clone https://github.com/Pika-Software/discord-gsm-pt.git .
 fi
 
