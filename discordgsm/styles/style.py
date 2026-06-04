@@ -209,7 +209,7 @@ class Style(ABC):
         )
         icon_url = "https://avatars.githubusercontent.com/u/71973526"
         embed.set_footer(
-            text=f"{advertisement} | {last_update}\nby DiscordGSM",
+            text=f"{advertisement} | {last_update}\nPowered by DiscordGSM {__version__}",
             icon_url=icon_url,
         )
 
