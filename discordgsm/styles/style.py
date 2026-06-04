@@ -187,7 +187,7 @@ class Style(ABC):
         )
 
     def set_footer(self, embed: Embed):
-        advertisement = "📺 Game Server Monitor"
+        advertisement = "📺 p1ka.eu"
 
         # Easter Egg
         today = str(date.today())  # 2020-12-23
@@ -207,9 +207,9 @@ class Style(ABC):
         last_update = t("embed.field.footer.last_update", self.locale).format(
             last_update=last_update
         )
-        icon_url = "https://avatars.githubusercontent.com/u/61296017"
+        icon_url = "https://avatars.githubusercontent.com/u/71973526"
         embed.set_footer(
-            text=f"DiscordGSM {__version__} | {advertisement} | {last_update}",
+            text=f"{advertisement} | {last_update}\nby DiscordGSM",
             icon_url=icon_url,
         )
 
