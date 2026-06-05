@@ -95,6 +95,12 @@ async def on_ready():
             if user_name != client.user.name and len(user_name) > 0:
                 Logger.info(f"Setting username to '{user_name}'")
                 await client.user.edit(username=user_name)
+            else:
+                Logger.info(
+                    "Username is already set to the desired value, skipping update..."
+                )
+        else:
+            Logger.info("No username set, skipping update...")
 
         if avatar_url := env("APP_AVATAR_URL"):
             Logger.info(f"Setting avatar from '{avatar_url}'")
@@ -106,6 +112,9 @@ async def on_ready():
                         Logger.info("Avatar successfully updated!")
                 except Exception as e:
                     Logger.error(f"Failed to set avatar: {e}")
+        else:
+            await client.user.edit(avatar=None)
+            Logger.info("Avatar cleared!")
 
         if banner_url := env("APP_BANNER_URL"):
             Logger.info(f"Setting banner from '{banner_url}'")
@@ -117,6 +126,9 @@ async def on_ready():
                         Logger.info("Banner successfully updated!")
                 except Exception as e:
                     Logger.error(f"Failed to set banner: {e}")
+        else:
+            await client.user.edit(banner=None)
+            Logger.info("Banner cleared!")
     else:
         Logger.warning("Client is not available, skipping user update...")
 
