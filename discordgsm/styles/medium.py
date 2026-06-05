@@ -40,7 +40,7 @@ class Medium(Style):
             title=title,
             description=description,
             color=color,
-            url=f"http://possum.p1ka.eu:56873/{self.server.address}:{self.server.query_port}",
+            url=f"https://possum.p1ka.eu:8443/{self.server.address}:{self.server.query_port}",
         )
 
         self.add_status_field(embed)
