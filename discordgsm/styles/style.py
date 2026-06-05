@@ -158,7 +158,7 @@ class Style(ABC):
             name = t("embed.field.address:port.name", self.locale)
             embed.add_field(
                 name=name,
-                value=f"`{self.server.address}:{self.server.query_port}`",
+                value=f"`{self.server.address}`",
                 inline=True,
             )
         else:
