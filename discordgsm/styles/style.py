@@ -242,6 +242,9 @@ class Style(ABC):
 
     @staticmethod
     def get_player_data(server: Server):
+        if not server.status:
+            return 0, 0, 0
+
         if "numplayers" in server.result:
             players = int(server.result.get("numplayers", 0))
         else:
