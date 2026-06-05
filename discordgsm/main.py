@@ -1644,9 +1644,9 @@ async def tasks_presence_update(current_loop: int):
                         if bots == 0:
                             name = "All servers are empty ;c"
                         else:
-                            name = f"We have {bots} bots online, on {len(online_servers)} servers!"
+                            name = f"We have {bots} bots online, wtf.."
                     else:
-                        name = f"We have {players} players online, on {len(online_servers)} servers!"
+                        name = f"We have {players - bots} players online, yay!"
 
         elif advertise_type == AdvertiseType.player_stats:
             # Display servers players stats
