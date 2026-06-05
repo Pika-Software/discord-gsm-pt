@@ -102,6 +102,18 @@ async def on_ready():
         else:
             Logger.info("No username set, skipping update...")
 
+        if server_name := env("APP_SERVER_NAME"):
+            server_name = str(server_name)
+
+            Logger.info(f"Setting server bot name to '{server_name}'")
+
+            for g in client.guilds:
+                await g.me.edit(nick=server_name)
+
+            Logger.info("Server bot name successfully updated!")
+        else:
+            Logger.info("No server name set, skipping update...")
+
         if avatar_url := env("APP_AVATAR_URL"):
             Logger.info(f"Setting avatar from '{avatar_url}'")
 

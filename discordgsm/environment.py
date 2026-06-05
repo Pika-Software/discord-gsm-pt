@@ -99,6 +99,12 @@ environment = Environment(
             default=0,
         ),
         Variable(
+            "APP_SERVER_NAME",
+            "Bot name to set on servers.",
+            str,
+            default=None,
+        ),
+        Variable(
             "APP_USERNAME",
             "Username to set for the bot.",
             str,
