@@ -99,6 +99,12 @@ environment = Environment(
             default=0,
         ),
         Variable(
+            "APP_AVATAR_URL",
+            "URL of the avatar image to set for the bot.",
+            str,
+            default=None,
+        ),
+        Variable(
             "TASK_QUERY_SERVER",
             "Query servers task scheduled time in seconds.",
             float,
