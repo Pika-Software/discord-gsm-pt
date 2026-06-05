@@ -1605,12 +1605,17 @@ async def tasks_presence_update(current_loop: int):
                         else discord.Status.do_not_disturb
                     )
 
-    if client.user is not None:
-        avatar_url = env("APP_AVATAR_URL")
-        if avatar_url:
-            async with aiohttp.ClientSession() as session:
+    avatar_url = env("APP_AVATAR_URL")
+    if client.user is not None and avatar_url:
+        Logger.info(f"Setting avatar from {avatar_url}")
+
+        async with aiohttp.ClientSession() as session:
+            try:
                 async with session.get(str(avatar_url)) as resp:
                     await client.user.edit(avatar=(await resp.read()))
+                    Logger.info("Avatar set successfully")
+            except Exception as e:
+                Logger.error(f"Failed to set avatar: {e}")
 
     activity = discord.Activity(name=name, type=env("APP_ACTIVITY_TYPE"))
     await client.change_presence(status=status, activity=activity)
