@@ -99,8 +99,20 @@ environment = Environment(
             default=0,
         ),
         Variable(
+            "APP_USERNAME",
+            "Username to set for the bot.",
+            str,
+            default=None,
+        ),
+        Variable(
             "APP_AVATAR_URL",
             "URL of the avatar image to set for the bot.",
+            str,
+            default=None,
+        ),
+        Variable(
+            "APP_BANNER_URL",
+            "URL of the banner image to set for the bot.",
             str,
             default=None,
         ),
