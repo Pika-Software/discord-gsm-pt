@@ -3,9 +3,9 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import threading
 from datetime import datetime
 from enum import Enum
-import threading
 from typing import Optional
 
 import aiohttp
@@ -24,8 +24,9 @@ from discord import (
 from discord.ext import tasks
 from discord.ui import Button, Modal, Select, TextInput, View
 from dotenv import load_dotenv
-from discordgsm.async_utils import run_in_new_loop, to_chunks
+from opengsq.protocol_socket import Socket
 
+from discordgsm.async_utils import run_in_new_loop, to_chunks
 from discordgsm.environment import AdvertiseType, env
 from discordgsm.gamedig import GamedigGame
 from discordgsm.logger import Logger
@@ -44,7 +45,6 @@ from discordgsm.service import (
 from discordgsm.styles import Style, Styles
 from discordgsm.translator import Translator, t
 from discordgsm.version import __version__
-from opengsq.protocol_socket import Socket
 
 load_dotenv()
 
@@ -1604,6 +1604,13 @@ async def tasks_presence_update(current_loop: int):
                         if servers[0].status
                         else discord.Status.do_not_disturb
                     )
+
+    if client.user is not None:
+        avatar_url = env("APP_AVATAR_URL")
+        if avatar_url:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(str(avatar_url)) as resp:
+                    await client.user.edit(avatar=(await resp.read()))
 
     activity = discord.Activity(name=name, type=env("APP_ACTIVITY_TYPE"))
     await client.change_presence(status=status, activity=activity)
