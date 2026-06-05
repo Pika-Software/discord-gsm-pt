@@ -158,7 +158,7 @@ class Style(ABC):
             name = t("embed.field.address:port.name", self.locale)
             embed.add_field(
                 name=name,
-                value=f"`{self.server.address}`",
+                value=f"`{self.server.address}:{self.server.query_port}`",
                 inline=True,
             )
         else:
@@ -173,7 +173,7 @@ class Style(ABC):
         name = t("embed.field.game.name", self.locale)
         embed.add_field(
             name=name,
-            value=self.server.result.raw.game,
+            value=self.server.style_data.get("fullname", self.server.game_id),
             inline=True,
         )
 
