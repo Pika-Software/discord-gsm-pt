@@ -58,7 +58,14 @@ class Medium(Style):
         name = t("embed.field.country.name", self.locale)
         embed.add_field(name=name, value=flag_emoji, inline=True)
 
-        self.add_game_field(embed)
+        if self.server.game_id == "garrysmod":
+            embed.add_field(
+                name="Gamemode",
+                value=self.server.result["raw"]["mode"],
+                inline=True,
+            )
+        else:
+            self.add_game_field(embed)
 
         if self.server.result["map"] and self.server.result["map"].strip():
             name = t("embed.field.current_map.name", self.locale)
