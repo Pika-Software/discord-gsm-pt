@@ -44,7 +44,7 @@ class Medium(Style):
         )
 
         self.add_status_field(embed)
-        self.add_address_field(embed)
+        # self.add_address_field(embed)
 
         flag_emoji = (
             ("country" in self.server.style_data)

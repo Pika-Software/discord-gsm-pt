@@ -173,9 +173,7 @@ class Style(ABC):
         name = t("embed.field.game.name", self.locale)
         embed.add_field(
             name=name,
-            value=self.server.query_extra.get(
-                "gamemode", self.server.style_data.get("fullname", self.server.game_id)
-            ),
+            value=self.server.result.raw.game,
             inline=True,
         )
 
