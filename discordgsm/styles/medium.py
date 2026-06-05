@@ -61,7 +61,7 @@ class Medium(Style):
         if self.server.game_id == "garrysmod":
             embed.add_field(
                 name="Gamemode",
-                value=self.server.result["raw"]["mode"],
+                value=self.server.result["raw"].get("game", "unknown"),
                 inline=True,
             )
         else:

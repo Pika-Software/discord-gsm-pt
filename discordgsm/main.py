@@ -1625,14 +1625,29 @@ async def tasks_presence_update(current_loop: int):
         elif advertise_type == AdvertiseType.individually:
             # Advertise online servers one by one
             if servers := await database.all_servers():
-                online_servers = [server for server in servers if server.status]
+                players, bots, maxplayers = 0, 0, 1
 
-                if len(online_servers) > 0:
-                    server = online_servers[current_loop % len(online_servers)]
-                    name = (
-                        Style.get_players_display_string(server)
-                        + f" {server.result['name']}"
-                    )
+                online_servers = [server for server in servers if server.status]
+                if len(online_servers) == 0:
+                    name = "There are no online servers :c"
+                else:
+                    for server in online_servers:
+                        server_players, server_bots, server_maxplayers = (
+                            Style.get_player_data(server)
+                        )
+
+                        players += server_players
+                        bots += server_bots
+                        maxplayers += server_maxplayers
+
+                    if players == 0:
+                        if bots == 0:
+                            name = "All servers are empty ;c"
+                        else:
+                            name = f"We have {bots} bots online, on {len(online_servers)} servers!"
+                    else:
+                        name = f"We have {players} players online, on {len(online_servers)} servers!"
+
         elif advertise_type == AdvertiseType.player_stats:
             # Display servers players stats
             if servers := await database.all_servers():

@@ -182,9 +182,21 @@ class Style(ABC):
             f"embed.field.{'presence' if self.server.game_id == 'discord' else 'players'}.name",
             self.locale,
         )
+
+        players, bots, maxplayers = Style.get_player_data(self.server)
+
         embed.add_field(
-            name=name, value=self.get_players_display_string(self.server), inline=True
+            name=name,
+            value=self.to_players_string(players, bots, maxplayers),
+            inline=True,
         )
+
+        if bots > 0:
+            embed.add_field(
+                name="Bots",
+                value=bots,
+                inline=True,
+            )
 
     def set_footer(self, embed: Embed):
         advertisement = "📺 p1ka.eu"
@@ -252,13 +264,11 @@ class Style(ABC):
 
     @staticmethod
     def to_players_string(players: int, bots: int, maxplayers: int):
-        players_string = str(players)  # example: 20
+        if maxplayers == 0:
+            return "[0/0/0] (0%)"
 
-        if bots > 0:
-            players_string += f" ({bots})"  # example: 20 (2)
+        percentage = 0 if maxplayers <= 0 else int(players / maxplayers * 100)
+        if bots == 0:
+            return f"[{players}/{players}/{maxplayers}] ({percentage}%)"
 
-        if maxplayers > 0:
-            percentage = 0 if maxplayers <= 0 else int(players / maxplayers * 100)
-            players_string = f"{players_string}/{maxplayers} ({percentage}%)"
-
-        return players_string
+        return f"[{players - bots}/{players}/{maxplayers}] ({percentage}%)"
