@@ -1261,10 +1261,15 @@ async def resend_channel_messages(
     async for chunks in embeds_chunks(servers):
         for server in chunks:
             try:
-                message = await channel.send(
-                    embed=Styles.get(server).embed(),
-                    view=ConnectionView(server=server),
-                )
+                if server.status:
+                    message = await channel.send(
+                        embed=Styles.get(server).embed(),
+                        view=ConnectionView(server=server),
+                    )
+                else:
+                    message = await channel.send(
+                        embed=Styles.get(server).embed(),
+                    )
             except discord.Forbidden as e:
                 # You do not have the proper permissions to send the message.
                 Logger.error(f"Channel {channel.id} send_message discord.Forbidden {e}")
@@ -1438,6 +1443,7 @@ async def query_distinct_server(servers: list[Server]):
             sent_offline_alert = bool(
                 server.result["raw"].get("__sent_offline_alert", False)
             )
+
             server.result = result
             server.result["raw"]["__sent_offline_alert"] = sent_offline_alert
         else:
@@ -1445,6 +1451,7 @@ async def query_distinct_server(servers: list[Server]):
             server.result["raw"]["__fail_query_count"] = (
                 int(raw.get("__fail_query_count", "0")) + 1
             )
+
             timestamp = int(datetime.utcnow().timestamp())
             server.result["raw"]["__offline_since"] = min(
                 int(raw.get("__offline_since", timestamp)), timestamp
@@ -1461,6 +1468,7 @@ async def get_hash_code(server: Server):
             Logger.debug(
                 f"Query servers: ({server.game_id})[{server.address}:{server.query_port}] {type(e).__name__}: {e}"
             )
+
             return None
 
     return (server.game_id, host, server.query_port, str(server.query_extra))
