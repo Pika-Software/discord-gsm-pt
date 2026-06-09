@@ -315,7 +315,7 @@ def alert_embed(server: Server, alert: Alert):
     return embed
 
 
-class CreateConnectButtonView(discord.ui.View):
+class ConnectionView(discord.ui.View):
     def __init__(self, server: Server):
         super().__init__(timeout=None)
         self.server = server
@@ -358,9 +358,7 @@ async def send_alert(server: Server, alert: Alert):
                 username=username,
                 avatar_url=avatar_url,
                 embed=alert_embed(server, alert),
-                view=CreateConnectButtonView(server=server)
-                if (server.game_id == "garrysmod")
-                else None,
+                view=ConnectionView(server=server),
             )
     else:
         # The Webhook URL is empty.
@@ -1262,16 +1260,10 @@ async def resend_channel_messages(
 
     async for chunks in embeds_chunks(servers):
         for server in chunks:
-            view = (
-                CreateConnectButtonView(server=server)
-                if server.game_id == "garrysmod"
-                else None
-            )
-
             try:
                 message = await channel.send(
                     embed=Styles.get(server).embed(),
-                    view=view,
+                    view=ConnectionView(server=server),
                 )
             except discord.Forbidden as e:
                 # You do not have the proper permissions to send the message.
@@ -1294,9 +1286,7 @@ async def resend_channel_messages(
 
                 return False
 
-            for server in chunks:
-                server.message_id = message.id
-
+            server.message_id = message.id
             cache_message(message)
 
     await database.update_servers_message_id(servers)
@@ -1625,31 +1615,34 @@ async def edit_message(servers: list[Server]):
         return True
 
     if message := await fetch_message(servers[0]):
-        try:
-            embeds = [Styles.get(server).embed() for server in servers]
-            message = await asyncio.wait_for(
-                message.edit(embeds=embeds),
-                timeout=float(os.getenv("TASK_EDIT_MESSAGE_TIMEOUT", "3")),
-            )
-            Logger.debug(f"Edit messages: {message.id} success")
-            return True
-        except discord.Forbidden as e:
-            # Tried to suppress a message without permissions or edited a message's content or embed that isn't yours.
-            Logger.debug(
-                f"Edit messages: {message.id} edit_messages discord.Forbidden {e}"
-            )
-            messages.pop(message.id, None)
-        except discord.HTTPException as e:
-            # Editing the message failed.
-            Logger.debug(
-                f"Edit messages: {message.id} edit_messages discord.HTTPException {e}"
-            )
-        except asyncio.TimeoutError:
-            # Possible: discord.http: We are being rate limited.
-            Logger.debug(
-                f"Edit messages: {message.id} edit_messages asyncio.TimeoutError"
-            )
-            messages.pop(message.id, None)
+        for server in servers:
+            try:
+                message = await asyncio.wait_for(
+                    message.edit(embed=Styles.get(server).embed()),
+                    timeout=float(os.getenv("TASK_EDIT_MESSAGE_TIMEOUT", "3")),
+                )
+
+                Logger.debug(f"Edit messages: {message.id} success")
+                return True
+            except discord.Forbidden as e:
+                # Tried to suppress a message without permissions or edited a message's content or embed that isn't yours.
+                Logger.debug(
+                    f"Edit messages: {message.id} edit_messages discord.Forbidden {e}"
+                )
+
+                messages.pop(message.id, None)
+            except discord.HTTPException as e:
+                # Editing the message failed.
+                Logger.debug(
+                    f"Edit messages: {message.id} edit_messages discord.HTTPException {e}"
+                )
+            except asyncio.TimeoutError:
+                # Possible: discord.http: We are being rate limited.
+                Logger.debug(
+                    f"Edit messages: {message.id} edit_messages asyncio.TimeoutError"
+                )
+
+                messages.pop(message.id, None)
 
     return False
 
@@ -1672,20 +1665,23 @@ async def tasks_presence_update(current_loop: int):
             # Advertise online servers one by one
             if servers := await database.all_servers():
                 players, bots, maxplayers = 0, 0, 1
+                servers_online = 0
 
-                online_servers = [server for server in servers if server.status]
-                if len(online_servers) == 0:
-                    name = "There are no online servers :c"
-                else:
-                    for server in online_servers:
+                for server in servers:
+                    if server.status:
                         server_players, server_bots, server_maxplayers = (
                             Style.get_player_data(server)
                         )
 
+                        maxplayers += server_maxplayers
                         players += server_players
                         bots += server_bots
-                        maxplayers += server_maxplayers
 
+                        servers_online += 1
+
+                if servers_online == 0:
+                    name = "There are no online servers :c"
+                else:
                     if players == 0:
                         if bots == 0:
                             name = "All servers are empty ;c"
