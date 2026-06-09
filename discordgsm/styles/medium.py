@@ -36,12 +36,7 @@ class Medium(Style):
     def embed(self) -> Embed:
         title, description, color = self.embed_data()
 
-        embed = Embed(
-            title=title,
-            description=description,
-            color=color,
-            url=f"https://possum.p1ka.eu:8443/{self.server.address}:{self.server.query_port}",
-        )
+        embed = Embed(title=title, description=description, color=color)
 
         self.add_status_field(embed)
         # self.add_address_field(embed)

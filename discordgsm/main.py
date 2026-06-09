@@ -99,8 +99,6 @@ async def on_ready():
                 Logger.info(
                     "Username is already set to the desired value, skipping update..."
                 )
-        else:
-            Logger.info("No username set, skipping update...")
 
         if server_name := env("APP_SERVER_NAME"):
             server_name = str(server_name)
@@ -111,8 +109,6 @@ async def on_ready():
                 await g.me.edit(nick=server_name)
 
             Logger.info("Server bot name successfully updated!")
-        else:
-            Logger.info("No server name set, skipping update...")
 
         if avatar_url := env("APP_AVATAR_URL"):
             Logger.info(f"Setting avatar from '{avatar_url}'")
@@ -124,9 +120,6 @@ async def on_ready():
                         Logger.info("Avatar successfully updated!")
                 except Exception as e:
                     Logger.error(f"Failed to set avatar: {e}")
-        else:
-            await client.user.edit(avatar=None)
-            Logger.info("Avatar cleared!")
 
         if banner_url := env("APP_BANNER_URL"):
             Logger.info(f"Setting banner from '{banner_url}'")
@@ -138,9 +131,6 @@ async def on_ready():
                         Logger.info("Banner successfully updated!")
                 except Exception as e:
                     Logger.error(f"Failed to set banner: {e}")
-        else:
-            await client.user.edit(banner=None)
-            Logger.info("Banner cleared!")
     else:
         Logger.warning("Client is not available, skipping user update...")
 
@@ -310,16 +300,47 @@ def alert_embed(server: Server, alert: Alert):
         if int(server.style_data.get("clock_format", "12")) == 12
         else "%Y-%m-%d %H:%M:%S"
     )
+
     query_time = datetime.now(
         tz=tz(server.style_data.get("timezone", "Etc/UTC"))
     ).strftime(time_format)
+
     query_time = t("embed.alert.footer.query_time", locale).format(
         query_time=query_time
     )
+
     icon_url = "https://avatars.githubusercontent.com/u/61296017"
     embed.set_footer(text=f"DiscordGSM {__version__} | {query_time}", icon_url=icon_url)
 
     return embed
+
+
+class CreateConnectButtonView(discord.ui.View):
+    def __init__(self, server: Server):
+        super().__init__(timeout=None)
+        self.server = server
+
+        self.add_item(
+            discord.ui.Button(
+                label="Join Server",
+                emoji="📡",
+                style=discord.ButtonStyle.link,
+                url=f"https://possum.p1ka.eu:8443/{self.server.address}:{self.server.query_port}",
+            )
+        )
+
+    @discord.ui.button(
+        label="Console Command", emoji="💻", style=discord.ButtonStyle.blurple
+    )
+    async def copy_callback(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        content = (
+            "Copy the command below and paste it into your game console:\n"
+            f"```text\nconnect {self.server.address}:{self.server.query_port}\n```"
+        )
+
+        await interaction.response.send_message(content, ephemeral=True)
 
 
 async def send_alert(server: Server, alert: Alert):
@@ -337,6 +358,9 @@ async def send_alert(server: Server, alert: Alert):
                 username=username,
                 avatar_url=avatar_url,
                 embed=alert_embed(server, alert),
+                view=CreateConnectButtonView(server=server)
+                if (server.game_id == "garrysmod")
+                else None,
             )
     else:
         # The Webhook URL is empty.
@@ -1237,33 +1261,39 @@ async def resend_channel_messages(
         return False
 
     async for chunks in embeds_chunks(servers):
-        try:
-            message = await channel.send(
-                embeds=[Styles.get(server).embed() for server in chunks]
-            )
-        except discord.Forbidden as e:
-            # You do not have the proper permissions to send the message.
-            Logger.error(f"Channel {channel.id} send_message discord.Forbidden {e}")
-
-            if interaction:
-                content = t("missing_permission.send_messages", interaction.locale)
-                await interaction.followup.send(content, ephemeral=True)
-
-            return False
-        except discord.HTTPException as e:
-            # Sending the message failed.
-            Logger.error(f"Channel {channel.id} send_message discord.HTTPException {e}")
-
-            if interaction:
-                content = t("command.error.internal_error", interaction.locale)
-                await interaction.followup.send(content, ephemeral=True)
-
-            return False
-
         for server in chunks:
-            server.message_id = message.id
+            try:
+                message = await channel.send(
+                    embeds=[Styles.get(server).embed()],
+                    view=CreateConnectButtonView(server=server)
+                    if (server.game_id == "garrysmod")
+                    else None,
+                )
+            except discord.Forbidden as e:
+                # You do not have the proper permissions to send the message.
+                Logger.error(f"Channel {channel.id} send_message discord.Forbidden {e}")
 
-        cache_message(message)
+                if interaction:
+                    content = t("missing_permission.send_messages", interaction.locale)
+                    await interaction.followup.send(content, ephemeral=True)
+
+                return False
+            except discord.HTTPException as e:
+                # Sending the message failed.
+                Logger.error(
+                    f"Channel {channel.id} send_message discord.HTTPException {e}"
+                )
+
+                if interaction:
+                    content = t("command.error.internal_error", interaction.locale)
+                    await interaction.followup.send(content, ephemeral=True)
+
+                return False
+
+            for server in chunks:
+                server.message_id = message.id
+
+            cache_message(message)
 
     await database.update_servers_message_id(servers)
 
