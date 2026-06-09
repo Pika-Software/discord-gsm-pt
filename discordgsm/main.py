@@ -1262,12 +1262,16 @@ async def resend_channel_messages(
 
     async for chunks in embeds_chunks(servers):
         for server in chunks:
+            view = (
+                CreateConnectButtonView(server=server)
+                if server.game_id == "garrysmod"
+                else None
+            )
+
             try:
                 message = await channel.send(
-                    embeds=[Styles.get(server).embed()],
-                    view=CreateConnectButtonView(server=server)
-                    if (server.game_id == "garrysmod")
-                    else None,
+                    embed=Styles.get(server).embed(),
+                    view=view,
                 )
             except discord.Forbidden as e:
                 # You do not have the proper permissions to send the message.
