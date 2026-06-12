@@ -503,6 +503,7 @@ def query_server_modal_handler(
             query_extra,
             result,
         )
+
         style = Styles.get(server, "Medium")
         server.style_id = style.id
         server.style_data = await style.default_style_data(None)
@@ -515,7 +516,10 @@ def query_server_modal_handler(
                     webhook = Webhook.from_url(
                         os.getenv("APP_PUBLIC_WEBHOOK_URL"), session=session
                     )
-                    await webhook.send(content, embed=style.embed())
+
+                    await webhook.send(
+                        content, embed=style.embed(), view=ConnectionView(server=server)
+                    )
 
             server = await database.add_server(server)
             Logger.info(
@@ -524,9 +528,13 @@ def query_server_modal_handler(
 
             if await resend_channel_messages(interaction):
                 await interaction.delete_original_response()
+
         else:
             content = t("function.query_server_modal.success", interaction.locale)
-            await interaction.followup.send(content, embed=style.embed())
+
+            await interaction.followup.send(
+                content, embed=style.embed(), view=ConnectionView(server=server)
+            )
 
     modal.on_submit = modal_on_submit
 
@@ -1261,15 +1269,10 @@ async def resend_channel_messages(
     async for chunks in embeds_chunks(servers):
         for server in chunks:
             try:
-                if server.status:
-                    message = await channel.send(
-                        embed=Styles.get(server).embed(),
-                        view=ConnectionView(server=server),
-                    )
-                else:
-                    message = await channel.send(
-                        embed=Styles.get(server).embed(),
-                    )
+                message = await channel.send(
+                    embed=Styles.get(server).embed(),
+                    view=ConnectionView(server=server),
+                )
             except discord.Forbidden as e:
                 # You do not have the proper permissions to send the message.
                 Logger.error(f"Channel {channel.id} send_message discord.Forbidden {e}")
@@ -1626,7 +1629,10 @@ async def edit_message(servers: list[Server]):
         for server in servers:
             try:
                 message = await asyncio.wait_for(
-                    message.edit(embed=Styles.get(server).embed()),
+                    message.edit(
+                        embed=Styles.get(server).embed(),
+                        view=ConnectionView(server=server),
+                    ),
                     timeout=float(os.getenv("TASK_EDIT_MESSAGE_TIMEOUT", "3")),
                 )
 
