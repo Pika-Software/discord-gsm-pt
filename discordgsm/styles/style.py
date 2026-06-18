@@ -188,7 +188,7 @@ class Style(ABC):
         embed.add_field(
             name=name,
             value=self.to_players_string(players, bots, maxplayers),
-            inline=True,
+            inline=False,
         )
 
         if bots > 0:
