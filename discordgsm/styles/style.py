@@ -193,6 +193,12 @@ class Style(ABC):
 
         if bots > 0:
             embed.add_field(
+                name="Humans",
+                value=players - bots,
+                inline=True,
+            )
+
+            embed.add_field(
                 name="Bots",
                 value=bots,
                 inline=True,
@@ -268,10 +274,6 @@ class Style(ABC):
     @staticmethod
     def to_players_string(players: int, bots: int, maxplayers: int):
         if maxplayers == 0:
-            return "[0/0/0] (0%)"
+            return "[0/0] (0%)"
 
-        percentage = 0 if maxplayers <= 0 else int(players / maxplayers * 100)
-        if bots == 0:
-            return f"[{players}/{players}/{maxplayers}] ({percentage}%)"
-
-        return f"[{players - bots}/{players}/{maxplayers}] ({percentage}%)"
+        return f"[{players}/{maxplayers}] ({0 if maxplayers <= 0 else int(players / maxplayers * 100)}%)"

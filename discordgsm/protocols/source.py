@@ -3,7 +3,7 @@ import time
 from typing import TYPE_CHECKING
 
 import opengsq
-from opengsq.responses.source import SourceInfo, GoldSourceInfo, Visibility
+from opengsq.responses.source import GoldSourceInfo, SourceInfo, Visibility
 
 from discordgsm.protocols.protocol import Protocol
 
